@@ -9,6 +9,7 @@ import com.sistemaFacturacion.Mambo.mape.dto.CompraRequestDTO;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -21,10 +22,10 @@ public class CompraController {
     private final CompraService compraService;
 
     @PostMapping("/carrito")
-    public ResponseEntity<CompraDTO> guardarCompra(@RequestBody CompraRequestDTO dto, @RequestHeader("Authorization") String token){
-        String tokenRecibido = token.replace("Bearer ", "");
-
-        CompraDTO compraCreada = compraService.guardarCarrito(dto, tokenRecibido);
+    public ResponseEntity<CompraDTO> guardarCompra(@RequestBody CompraRequestDTO dto) {
+        String dni = SecurityContextHolder.getContext().getAuthentication().getName();
+        CompraDTO compraCreada = compraService.guardarCarrito(dto, dni);
+        
         return ResponseEntity.ok(compraCreada);
     }
     
