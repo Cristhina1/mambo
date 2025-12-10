@@ -1,7 +1,9 @@
 package com.sistemaFacturacion.Mambo.auth.jwt;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import javax.crypto.SecretKey;
@@ -29,11 +31,19 @@ public class JwtService {
     }
 
     public String getToken(Usuario user) {
-        return generateToken(buildUserDetails(user));
+        UserDetails userDetails = buildUserDetails(user);
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("role", "ROLE_" + user.getRol().getNombre()); 
+        return generateToken(extraClaims, userDetails);
     }
 
     public String getTokenCliente(cliente cliente) {
-        return generateToken(buildClienteUserDetails(cliente));
+        UserDetails userDetails = buildClienteUserDetails(cliente);
+        
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("role", "ROLE_" + cliente.getRol().getNombre());
+        
+        return generateToken(extraClaims, userDetails);
     }
 
 
@@ -58,8 +68,9 @@ public class JwtService {
     }
 
 
-    private String generateToken(UserDetails userDetails) {
+    private String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         return Jwts.builder()
+                .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername()) 
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hora

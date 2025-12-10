@@ -1,0 +1,1 @@
+ALTER TABLE destinatario MODIFY email VARCHAR(150);
