@@ -35,6 +35,7 @@ public class DetalleCompraMape {
         dto.setPrecioUnitario(entity.getPrecioUnitario());
         dto.setSubtotal(entity.getSubTotal());
         dto.setProductoId(entity.getProducto().getId());
+        dto.setNombreProducto(entity.getProducto().getNombre());
         return dto;
     }
 }

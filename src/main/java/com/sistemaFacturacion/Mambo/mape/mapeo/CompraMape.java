@@ -41,7 +41,6 @@ public class CompraMape {
 
     public CompraDTO toDto(Compra compra){
         
-        
         CompraDTO dto = new CompraDTO();
         dto.setId(compra.getId());
         dto.setContactoDestinatario(compra.getDestinatario().getNombres()+" "+compra.getDestinatario().getApellidos());

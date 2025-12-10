@@ -34,3 +34,4 @@ build/
 # Archivos sensibles
 application.properties
 application.yml
+.env

@@ -59,9 +59,12 @@ public class CompraService {
     private ProductoRepository productoRepository;
 
     @Autowired
+    private EmailService emailService;
+
+    @Autowired
     private JwtService jwtService;
 
-    @Transactional
+  @Transactional
     public CompraDTO guardarCarrito(CompraRequestDTO dto, String dni) {
         
         cliente cliente = clienteRepository.findByNumeroDocumento(dni)
@@ -69,7 +72,6 @@ public class CompraService {
 
         // 2. Guardar ENVÍO
         Envio envio = compraMape.toEnvioEntity(dto.getEnvio());
-        // Lógica de precio de envío
         envio.setPrecio(envio.getTipoEnvio() == TipoEnvio.DELIVERY ? 20.0 : 0.0);
         envio = envioRepository.save(envio);
 
@@ -81,7 +83,7 @@ public class CompraService {
         // 4. Guardar PAGO
         pago pago = pagoRepository.save(compraMape.toPagoEntity(dto.getPago()));
 
-        // 5. Preparar la COMPRA (Aún no la guardamos, necesitamos el total real)
+        // 5. Preparar la COMPRA
         Compra compra = new Compra();
         compra.setCliente(cliente);
         compra.setDestinatario(destinatario);
@@ -91,51 +93,64 @@ public class CompraService {
         compra.setTipoComprobante(TipoComprobante.valueOf(dto.getTipoComprobante()));
         compra.setFechaCreacion(LocalDateTime.now());
 
-        // 6. PROCESAR DETALLES, VALIDAR STOCK Y CALCULAR TOTAL SEGURO
+        // 6. PROCESAR DETALLES
         double totalProductos = 0.0;
         List<DetalleCompra> detallesParaGuardar = new ArrayList<>();
 
         for (DetalleCompraDto detDto : dto.getDetalles()) {
-            // A. Buscamos el producto REAL en la BD
             Producto productoReal = productoRepository.findById(detDto.getProductoId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado ID: " + detDto.getProductoId()));
 
-            // B. Validamos Stock
             if (productoReal.getStock() < detDto.getCantidad()) {
                 throw new RuntimeException("Stock insuficiente para: " + productoReal.getNombre());
             }
 
-            // C. Descontamos Stock y actualizamos producto
             productoReal.setStock(productoReal.getStock() - detDto.getCantidad());
             productoRepository.save(productoReal);
 
-            // D. Creamos el detalle usando el PRECIO REAL de la BD (Seguridad)
             DetalleCompra detalle = new DetalleCompra();
             detalle.setProducto(productoReal);
             detalle.setCantidad(detDto.getCantidad());
-            detalle.setPrecioUnitario(productoReal.getPrecio()); // Usamos precio de BD
+            detalle.setPrecioUnitario(productoReal.getPrecio());
             detalle.setSubTotal(productoReal.getPrecio() * detDto.getCantidad());
             
-            // Agregamos al acumulador
             totalProductos += detalle.getSubTotal();
             detallesParaGuardar.add(detalle);
         }
 
-        // 7. Establecer Total y Guardar Compra
+        // 7. Guardar Compra
         compra.setTotal(totalProductos + envio.getPrecio());
         Compra compraGuardada = compraRepository.save(compra);
 
-        // 8. Guardar Detalles vinculados a la Compra
+        // 8. Guardar Detalles
         for (DetalleCompra det : detallesParaGuardar) {
-            det.setCompra(compraGuardada); // Vinculamos la compra ya guardada
+            det.setCompra(compraGuardada);
             detalleCompraRepository.save(det);
         }
         
-        // Asignamos para devolver en el DTO
         compraGuardada.setDetalles(detallesParaGuardar);
 
-        return compraMape.toDto(compraGuardada);
-    }// 📋 Listar todos los carritos
+        // --- 9. GENERAMOS EL DTO FINAL ---
+        CompraDTO resultadoCompra = compraMape.toDto(compraGuardada);
+
+        // --- 🔟 INTEGRACIÓN DEL EMAIL ---
+        try {
+            // Obtenemos el correo que el usuario escribió en el formulario de destinatario
+            String emailDestino = dto.getDestinatario().getEmail();
+            
+            if (emailDestino != null && !emailDestino.isEmpty()) {
+                // Llamamos al servicio (Se ejecutará en segundo plano gracias al @Async)
+                emailService.enviarBoleta(emailDestino, resultadoCompra);
+            }
+        } catch (Exception e) {
+            // Importante: Capturamos cualquier error del email para que NO falle la compra
+            // Solo lo imprimimos en consola
+            System.err.println("⚠️ No se pudo enviar el correo: " + e.getMessage());
+        }
+
+        return resultadoCompra;
+    }
+    // 📋 Listar todos los carritos
     public List<CompraDTO> listarCarritos() {
         return compraRepository.findAll()
                 .stream()
