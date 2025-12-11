@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @CrossOrigin("http://localhost:4200/")
-@RequestMapping("/api/productos")
+@RequestMapping("/lista/productos")
 public class ProductoRestController {
 
     private final ProductoService productoService;
@@ -36,6 +37,7 @@ public class ProductoRestController {
         return ResponseEntity.ok(productoService.findAll());
     }
 
+    
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProductoDTO> create(@ModelAttribute ProductoDTO productoDTO) {
         return ResponseEntity.ok(productoService.save(productoDTO));
