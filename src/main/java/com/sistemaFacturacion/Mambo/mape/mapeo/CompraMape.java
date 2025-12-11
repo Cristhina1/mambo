@@ -43,9 +43,10 @@ public class CompraMape {
         
         CompraDTO dto = new CompraDTO();
         dto.setId(compra.getId());
-        dto.setContactoDestinatario(compra.getDestinatario().getNombres()+" "+compra.getDestinatario().getApellidos());
+        dto.setContactoDestinatario(compra.getDestinatario().getTelefono());
         dto.setTipoPago(compra.getPago().getTipoPago().name());
         dto.setTotal(compra.getTotal());
+        dto.setNombreDestinario(compra.getDestinatario().getNombres()+" "+compra.getDestinatario().getApellidos());
         dto.setEstado(compra.getEstadoPago().name());
         dto.setTipoEnvio(compra.getEnvio().getTipoEnvio().name());
         dto.setTipoComprobante(compra.getTipoComprobante().name());

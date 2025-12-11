@@ -31,6 +31,7 @@ import com.sistemaFacturacion.Mambo.mape.mapeo.DetalleCompraMape;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -117,34 +118,22 @@ public class CompraService {
             totalProductos += detalle.getSubTotal();
             detallesParaGuardar.add(detalle);
         }
-
-        // 7. Guardar Compra
         compra.setTotal(totalProductos + envio.getPrecio());
         Compra compraGuardada = compraRepository.save(compra);
-
-        // 8. Guardar Detalles
         for (DetalleCompra det : detallesParaGuardar) {
             det.setCompra(compraGuardada);
             detalleCompraRepository.save(det);
         }
         
         compraGuardada.setDetalles(detallesParaGuardar);
-
-        // --- 9. GENERAMOS EL DTO FINAL ---
         CompraDTO resultadoCompra = compraMape.toDto(compraGuardada);
-
-        // --- 🔟 INTEGRACIÓN DEL EMAIL ---
         try {
-            // Obtenemos el correo que el usuario escribió en el formulario de destinatario
             String emailDestino = dto.getDestinatario().getEmail();
             
             if (emailDestino != null && !emailDestino.isEmpty()) {
-                // Llamamos al servicio (Se ejecutará en segundo plano gracias al @Async)
                 emailService.enviarBoleta(emailDestino, resultadoCompra);
             }
         } catch (Exception e) {
-            // Importante: Capturamos cualquier error del email para que NO falle la compra
-            // Solo lo imprimimos en consola
             System.err.println("⚠️ No se pudo enviar el correo: " + e.getMessage());
         }
 
@@ -159,10 +148,15 @@ public class CompraService {
     }
 
     // 🔎 Buscar carritos por cliente
-    public List<CompraDTO> buscarPorCliente(Long clienteId) {
-        return compraRepository.findByClienteId(clienteId).stream()
+    public List<CompraDTO> obtenerHistorialPorDni(String dni) {
+        return compraRepository.findByClienteNumeroDocumento(dni).stream()
                 .map(compraMape::toDto)
                 .collect(Collectors.toList());
+    }
+
+    public Optional<CompraDTO> obtenerCompraPorId(Long id){
+        return compraRepository.findById(id)
+        .map(compraMape :: toDto);
     }
 
 }

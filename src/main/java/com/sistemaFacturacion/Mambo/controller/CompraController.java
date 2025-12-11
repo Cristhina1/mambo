@@ -8,8 +8,14 @@ import com.sistemaFacturacion.Mambo.mape.dto.CompraDTO;
 import com.sistemaFacturacion.Mambo.mape.dto.CompraRequestDTO;
 
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -27,6 +33,27 @@ public class CompraController {
         CompraDTO compraCreada = compraService.guardarCarrito(dto, dni);
         
         return ResponseEntity.ok(compraCreada);
+    }
+
+    @GetMapping("/mis-compras")
+    public ResponseEntity<List<CompraDTO>> verMiHistorial(Authentication authentication) {
+        String dniUsuario = authentication.getName(); 
+        
+        // Ahora recibimos DTOs, no Entidades
+        List<CompraDTO> historial = compraService.obtenerHistorialPorDni(dniUsuario);
+
+        if (historial.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        
+        return ResponseEntity.ok(historial);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CompraDTO> obtenerCompraPorId(@PathVariable Long id) {
+        return compraService.obtenerCompraPorId(id)
+                .map(dto -> ResponseEntity.ok(dto))
+                .orElse(ResponseEntity.notFound().build());
     }
     
 }
