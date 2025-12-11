@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import com.sistemaFacturacion.Mambo.mape.dto.CompraDTO;
 import com.sistemaFacturacion.Mambo.mape.dto.DetalleCompraDto;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
@@ -22,22 +24,31 @@ public class EmailService {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
             helper.setTo(destinatario);
             helper.setSubject("Tu Boleta de Compra - Mambo Store #" + compra.getId());
             String htmlContent = generarHtmlBoleta(compra);
-            
             helper.setText(htmlContent, true); 
-
             mailSender.send(message);
             System.out.println("📧 Correo enviado a: " + destinatario);
-
         } catch (MessagingException e) {
             System.out.println("❌ Error al enviar correo: " + e.getMessage());
         }
     }
 
     private String generarHtmlBoleta(CompraDTO compra) {
+        String fechaBonita = "-";
+        if (compra.getFechaCreacion() != null) {
+        try {
+            LocalDateTime fechaObj = LocalDateTime.parse(compra.getFechaCreacion());
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            fechaBonita = fechaObj.format(formatter);
+            
+        } catch (Exception e) {
+            // Si algo falla al convertir, mostramos la fecha original "fea" para no romper nada
+            fechaBonita = compra.getFechaCreacion();
+            System.out.println("Error parseando fecha: " + e.getMessage());
+        }
+    }
         StringBuilder sb = new StringBuilder();
         sb.append("<html><body>");
         sb.append("<div style='font-family: Arial; max-width: 600px; margin: auto; border: 1px solid #ccc; padding: 20px;'>");
@@ -47,7 +58,7 @@ public class EmailService {
         
         sb.append("<hr>");
         sb.append("<p><b>N° Pedido:</b> ").append(compra.getId()).append("</p>");
-        sb.append("<p><b>Fecha:</b> ").append(compra.getFechaCreacion()).append("</p>");
+        sb.append("<p><b>Fecha:</b> ").append(fechaBonita).append("</p>");
         sb.append("<p><b>Tipo Envío:</b> ").append(compra.getTipoEnvio()).append("</p>");
         
         sb.append("<h3>Detalle:</h3>");

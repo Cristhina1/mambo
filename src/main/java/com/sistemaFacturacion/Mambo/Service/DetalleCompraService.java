@@ -2,6 +2,8 @@ package com.sistemaFacturacion.Mambo.Service;
 
 
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.sistemaFacturacion.Mambo.entity.Repository.DetalleCompraRepository;
@@ -29,7 +31,6 @@ public class DetalleCompraService {
         DetalleCompra guardar = detalleCompraRepository.save(nuevo);
         return detalleCompraMape.toDto(guardar);
     }
-
 
 
 

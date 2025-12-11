@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @CrossOrigin("http://localhost:4200/")
-@RequestMapping("/api/productos")
+@RequestMapping("/lista/productos")
 public class ProductoRestController {
 
     private final ProductoService productoService;

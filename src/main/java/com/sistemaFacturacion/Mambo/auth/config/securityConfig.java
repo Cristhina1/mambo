@@ -30,7 +30,7 @@ public class securityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**", "/uploads/**").permitAll() 
+                .requestMatchers("/auth/**", "/uploads/**", "/lista/productos/**").permitAll() 
                 .requestMatchers("/api/**").authenticated() // Asegura tus rutas API
                 .anyRequest().authenticated()
             )
