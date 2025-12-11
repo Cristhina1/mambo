@@ -13,7 +13,7 @@ public class MamboApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(MamboApplication.class, args);
 		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-    System.out.println(encoder.encode("vendedor"));
+    System.out.println(encoder.encode("admin12345"));
 	}
 
 }
