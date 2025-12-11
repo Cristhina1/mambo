@@ -14,7 +14,7 @@ INSERT INTO usuarios (
     '00000001',
     'admin@mambo.com',
     '987654321',
-    '$2a$10$m2HDYoWlQf9osjBe.XEgM.NnOi31u4Qbo4d7g8XkNQKU.wf9I1jtK' /* admin*/
+    '$2a$10$bj.B5jF53GfVLFvpcI4pk.YOQPefdil0z4LLzAvKwir1U6LcMM3ki' /* admin*/
 ),
 (
     'Vendedor Principal',
